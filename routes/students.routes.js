@@ -7,7 +7,9 @@ const Student = require("../models/students.model")
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, './uploads')
+        fs.mkdir(path.join(__dirname, '..', 'uploads'), { recursive: true }, (err) => {
+            cb(err, path.join(__dirname, '..', 'uploads'))
+        })
     },
     filename: (req, file, cb ) => {
         const newFileName = Date.now() + path.extname(file.originalname)
@@ -69,8 +71,8 @@ router.put("/:id", upload.single('profile_pic'), async(req, res) => {
     try{
         const existingStudent = await Student.findById(req.params.id)
         if(!existingStudent){
-            if(req.file.filename){
-                const filepath = path.join('./uploads', req.file.filename)
+            if(req.file && req.file.filename){
+                const filepath = path.join(__dirname, '..', 'uploads', req.file.filename)
                 fs.unlink(filepath, (err) => {
                     if(err) console.log("Failed to Delete image", err)
                 })
@@ -80,7 +82,7 @@ router.put("/:id", upload.single('profile_pic'), async(req, res) => {
 
         if(req.file){
           if(existingStudent.profile_pic){
-            const oldimagepath = path.join('./uploads', existingStudent.profile_pic)
+            const oldimagepath = path.join(__dirname, '..', 'uploads', existingStudent.profile_pic)
             fs.unlink(oldimagepath, (err) => {
                 if(err) console.log("Failed to Delete old image: ", err)
             })
@@ -104,7 +106,7 @@ router.delete("/:id", async(req, res) => {
         if(!student) return res.status(404).json({message: "Student not found"})
         
         if(student.profile_pic){
-            const filePath = path.join('./uploads', student.profile_pic)
+            const filePath = path.join(__dirname, '..', 'uploads', student.profile_pic)
             fs.unlink(filePath, (err) => {
                 if(err) console.log("Failed to Delete ", err)
             })
